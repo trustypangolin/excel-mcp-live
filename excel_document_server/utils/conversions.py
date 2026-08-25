@@ -42,3 +42,17 @@ def column_letter(col_num: int) -> str:
         col_num, remainder = divmod(col_num - 1, 26)
         letters = chr(65 + remainder) + letters
     return letters
+
+
+def column_number(letters: str) -> int:
+    """Convert Excel column letters to a 1-based column number ('A' -> 1, 'AA' -> 27).
+
+    Inverse of column_letter(). Case-insensitive.
+    """
+    letters = letters.strip().upper()
+    if not letters or not letters.isalpha():
+        raise ValueError(f"Invalid column letters: {letters!r}")
+    col_num = 0
+    for ch in letters:
+        col_num = col_num * 26 + (ord(ch) - ord("A") + 1)
+    return col_num

@@ -17,6 +17,7 @@ from excel_document_server.tools import (
     range_tools,
     format_tools,
     comment_tools,
+    structure_tools,
 )
 
 mcp = FastMCP("Excel Live MCP Server")
@@ -197,6 +198,50 @@ def register_tools():
     )
     def delete_comment(workbook: str = None, sheet: str = None, cell: str = "A1"):
         return comment_tools.delete_comment(workbook, sheet, cell)
+
+    # --- Row/column structure tools ---
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Insert Rows"),
+        description=structure_tools.insert_rows.__doc__,
+    )
+    def insert_rows(workbook: str = None, sheet: str = None, row_index: int = None, count: int = 1):
+        return structure_tools.insert_rows(workbook, sheet, row_index, count)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Delete Rows", destructiveHint=True),
+        description=structure_tools.delete_rows.__doc__,
+    )
+    def delete_rows(workbook: str = None, sheet: str = None, row_index: int = None, count: int = 1):
+        return structure_tools.delete_rows(workbook, sheet, row_index, count)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Insert Columns"),
+        description=structure_tools.insert_columns.__doc__,
+    )
+    def insert_columns(workbook: str = None, sheet: str = None, column: str = None, count: int = 1):
+        return structure_tools.insert_columns(workbook, sheet, column, count)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Delete Columns", destructiveHint=True),
+        description=structure_tools.delete_columns.__doc__,
+    )
+    def delete_columns(workbook: str = None, sheet: str = None, column: str = None, count: int = 1):
+        return structure_tools.delete_columns(workbook, sheet, column, count)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Sort Range", destructiveHint=True),
+        description=structure_tools.sort_range.__doc__,
+    )
+    def sort_range(
+        workbook: str = None,
+        sheet: str = None,
+        range_address: str = "A1",
+        key_column: int = 1,
+        ascending: bool = True,
+        has_header: bool = True,
+    ):
+        return structure_tools.sort_range(workbook, sheet, range_address, key_column, ascending, has_header)
 
 
 def run_server():
