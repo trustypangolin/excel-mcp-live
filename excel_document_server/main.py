@@ -22,6 +22,7 @@ from excel_document_server.tools import (
     named_range_tools,
     range_extras_tools,
     table_tools,
+    chart_tools,
 )
 
 mcp = FastMCP("Excel Live MCP Server")
@@ -477,6 +478,61 @@ def register_tools():
     )
     def delete_table(workbook: str = None, sheet: str = None, table_name: str = None):
         return table_tools.delete_table(workbook, sheet, table_name)
+
+    # --- Chart tools ---
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Create Chart"),
+        description=chart_tools.create_chart.__doc__,
+    )
+    def create_chart(
+        workbook: str = None,
+        sheet: str = None,
+        range_address: str = "A1",
+        chart_type: str = "column_clustered",
+        title: str = None,
+        chart_name: str = None,
+        left: float = 400,
+        top: float = 50,
+        width: float = 400,
+        height: float = 250,
+    ):
+        return chart_tools.create_chart(workbook, sheet, range_address, chart_type, title, chart_name, left, top, width, height)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="List Charts", readOnlyHint=True),
+        description=chart_tools.list_charts.__doc__,
+    )
+    def list_charts(workbook: str = None, sheet: str = None):
+        return chart_tools.list_charts(workbook, sheet)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Set Chart Type"),
+        description=chart_tools.set_chart_type.__doc__,
+    )
+    def set_chart_type(workbook: str = None, sheet: str = None, chart_name: str = None, chart_type: str = "column_clustered"):
+        return chart_tools.set_chart_type(workbook, sheet, chart_name, chart_type)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Set Chart Title"),
+        description=chart_tools.set_chart_title.__doc__,
+    )
+    def set_chart_title(workbook: str = None, sheet: str = None, chart_name: str = None, title: str = None):
+        return chart_tools.set_chart_title(workbook, sheet, chart_name, title)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Add Chart Series"),
+        description=chart_tools.add_series.__doc__,
+    )
+    def add_series(workbook: str = None, sheet: str = None, chart_name: str = None, series_range: str = None, series_name: str = None):
+        return chart_tools.add_series(workbook, sheet, chart_name, series_range, series_name)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Delete Chart", destructiveHint=True),
+        description=chart_tools.delete_chart.__doc__,
+    )
+    def delete_chart(workbook: str = None, sheet: str = None, chart_name: str = None):
+        return chart_tools.delete_chart(workbook, sheet, chart_name)
 
 
 def run_server():
