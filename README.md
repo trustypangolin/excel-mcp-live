@@ -132,6 +132,14 @@ are optional almost everywhere — omit them to target the active workbook / act
 | `add_hyperlink` | Add a hyperlink (external URL or internal cell reference) |
 | `remove_hyperlink` | Remove a cell's hyperlink |
 | `list_hyperlinks` | List all hyperlinks on a sheet |
+| **Excel Tables** | |
+| `create_table` | Create an Excel Table (ListObject) from a range |
+| `list_tables` | List tables on a sheet |
+| `get_table_info` | Read a table's columns, range, row count, and style |
+| `append_table_rows` | Add one or more rows to the end of a table |
+| `get_table_data` | Read a table's data rows as a 2D array |
+| `apply_table_style` | Apply a built-in table style |
+| `delete_table` | Remove a table's definition, keeping the underlying data |
 | **Comments** | |
 | `add_comment` | Add a cell comment (note) |
 | `get_comments` | List comments on a sheet |

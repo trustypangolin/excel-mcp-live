@@ -76,6 +76,11 @@ Discovered three times so far while adding tools — expect to hit it again on a
   keeps confirming: after creating something via a COM method call with several keyword arguments,
   verify the result actually reflects what you passed — don't assume a keyword argument took
   effect just because the call didn't raise.
+- **`ListObject.TableStyle`** reads back as a `TableStyle` COM object, not the plain string it
+  accepts on write — `json.dumps()` raised `Object of type CDispatch is not JSON serializable`
+  until `table_tools.get_table_info()` unwrapped it via `.Name`. A reminder that a COM property's
+  read type and write type aren't guaranteed to match — check `hasattr(value, "Name")` (or similar)
+  before assuming a property you read back is already a plain Python value.
 
 **The pattern to follow for any new COM call added here:** don't trust a parameterized
 property/method's default or keyword-argument behavior without testing it live against a real,
@@ -126,6 +131,7 @@ excel_document_server/
     conditional_format_tools.py  cell-value rules, color scales
     named_range_tools.py  list/read/write/create/update/delete named ranges
     range_extras_tools.py  data validation, merge/unmerge, hyperlinks
+    table_tools.py         Excel Tables (ListObjects): create/list/inspect/append/read/style/delete
     comment_tools.py      cell comments (notes)
 ```
 
@@ -136,9 +142,18 @@ Every tool function follows the same shape: guard on `sys.platform == "win32"`, 
 
 ## Roadmap / not yet implemented
 
-- Charts, PivotTables, Power Query, DAX, VBA — intentionally out of scope; that's `mcp-server-excel`.
+- Charts are planned next. PivotTables, Power Query, DAX, VBA are intentionally out of scope;
+  that's `mcp-server-excel`.
 - No explicit "close workbook" or "detach" tool.
 - No macOS support (Word's live tools have a JXA backend for macOS; Excel does not here yet).
-- No screenshot/export-to-verify tool (PowerPoint's `mcp-server-powerpoint` has one; could be a
-  useful port).
+- **Range/sheet screenshot was attempted and shelved** — see the unmerged `feature/screenshot`
+  branch. The standard VBA technique (`Range.CopyPicture` → paste onto a temp chart → `Chart.Export`)
+  hit three different failure modes across six live-test rounds: `Appearance=xlPrinter` raises
+  outright; calling `Worksheet.Activate()` right before `CopyPicture(xlScreen)` also raises, even
+  with the message queue pumped afterward; and `Chart.Paste()` doesn't reliably accept
+  `CopyPicture`'s own clipboard format (silently produces a blank exported image — worked around by
+  pasting onto the worksheet first, re-copying that shape, then pasting *that* into the chart, which
+  got further but still hasn't been confirmed producing real content). If picking this back up,
+  start from that branch's history rather than from scratch — each dead end is documented in its
+  commit messages.
 - No automated tests.
