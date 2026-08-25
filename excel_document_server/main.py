@@ -18,6 +18,7 @@ from excel_document_server.tools import (
     format_tools,
     comment_tools,
     structure_tools,
+    conditional_format_tools,
 )
 
 mcp = FastMCP("Excel Live MCP Server")
@@ -242,6 +243,55 @@ def register_tools():
         has_header: bool = True,
     ):
         return structure_tools.sort_range(workbook, sheet, range_address, key_column, ascending, has_header)
+
+    # --- Conditional formatting tools ---
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Add Conditional Formatting Rule"),
+        description=conditional_format_tools.add_rule.__doc__,
+    )
+    def add_conditional_format_rule(
+        workbook: str = None,
+        sheet: str = None,
+        range_address: str = "A1",
+        condition: str = "greater_than",
+        value1: str | float | int | None = None,
+        value2: str | float | int | None = None,
+        fill_color: str = None,
+        font_color: str = None,
+        bold: bool = None,
+    ):
+        return conditional_format_tools.add_rule(
+            workbook, sheet, range_address, condition, value1, value2, fill_color, font_color, bold,
+        )
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Add Color Scale"),
+        description=conditional_format_tools.add_color_scale.__doc__,
+    )
+    def add_color_scale(
+        workbook: str = None,
+        sheet: str = None,
+        range_address: str = "A1",
+        min_color: str = "F8696B",
+        max_color: str = "63BE7B",
+        mid_color: str = None,
+    ):
+        return conditional_format_tools.add_color_scale(workbook, sheet, range_address, min_color, max_color, mid_color)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="List Conditional Formatting Rules", readOnlyHint=True),
+        description=conditional_format_tools.list_rules.__doc__,
+    )
+    def list_conditional_format_rules(workbook: str = None, sheet: str = None, range_address: str = "A1"):
+        return conditional_format_tools.list_rules(workbook, sheet, range_address)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Clear Conditional Formatting Rules", destructiveHint=True),
+        description=conditional_format_tools.clear_rules.__doc__,
+    )
+    def clear_conditional_format_rules(workbook: str = None, sheet: str = None, range_address: str = "A1"):
+        return conditional_format_tools.clear_rules(workbook, sheet, range_address)
 
 
 def run_server():
