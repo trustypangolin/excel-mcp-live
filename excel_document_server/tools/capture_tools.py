@@ -15,26 +15,33 @@ _XL_BITMAP = 2
 
 
 def _export_range_as_image(ws, rng, output_path: str, image_format: str):
-    """Shared implementation for capturing a Range to an image file."""
-    # Appearance=xlPrinter raises "CopyPicture method of Range class failed"
-    # outright. Calling ws.Activate() immediately before CopyPicture(xlScreen)
-    # also raises that same error, even with the message queue pumped
-    # afterward — Activate() itself puts something into a bad state for the
-    # following CopyPicture call, not just a pending-redraw timing issue.
-    # So: no Activate(), plain xlScreen (this combination is the only one
-    # that doesn't raise) — but pump the message queue between CopyPicture
-    # and Paste, in case the blank-output problem is the clipboard hand-off
-    # not having completed yet when Paste runs.
-    import pythoncom
+    """Shared implementation for capturing a Range to an image file.
 
+    Excel COM quirks hit while building this (see CLAUDE.md for the full
+    history): Appearance=xlPrinter raises outright; calling ws.Activate()
+    right before CopyPicture(xlScreen) also raises, even with the message
+    queue pumped afterward. Plain xlScreen with no Activate() is the only
+    combination that doesn't raise — but Chart.Paste() doesn't reliably
+    accept CopyPicture's clipboard format directly either: it silently
+    produces an empty chart (no error, but a blank exported image).
+    """
     rng.CopyPicture(Appearance=_XL_SCREEN, Format=_XL_BITMAP)
-    pythoncom.PumpWaitingMessages()
+
+    # Paste onto the worksheet first to materialize a genuine Picture
+    # shape, then re-copy that shape — its clipboard format is a plain
+    # "Picture" that Chart.Paste() does accept. The temporary worksheet
+    # picture is deleted afterward.
+    ws.Paste()
+    temp_shape = ws.Shapes(ws.Shapes.Count)
+    temp_shape.Copy()
 
     chart_obj = ws.ChartObjects().Add(rng.Left, rng.Top + rng.Height + 40, rng.Width, rng.Height)
     try:
         chart_obj.Chart.Paste()
         chart_obj.Chart.Export(output_path, image_format)
     finally:
+        chart_obj.Delete()
+        temp_shape.Delete()
         chart_obj.Delete()
 
 
