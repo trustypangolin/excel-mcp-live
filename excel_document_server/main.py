@@ -19,6 +19,7 @@ from excel_document_server.tools import (
     comment_tools,
     structure_tools,
     conditional_format_tools,
+    named_range_tools,
 )
 
 mcp = FastMCP("Excel Live MCP Server")
@@ -292,6 +293,50 @@ def register_tools():
     )
     def clear_conditional_format_rules(workbook: str = None, sheet: str = None, range_address: str = "A1"):
         return conditional_format_tools.clear_rules(workbook, sheet, range_address)
+
+    # --- Named range tools ---
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="List Named Ranges", readOnlyHint=True),
+        description=named_range_tools.list_named_ranges.__doc__,
+    )
+    def list_named_ranges(workbook: str = None):
+        return named_range_tools.list_named_ranges(workbook)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Read Named Range", readOnlyHint=True),
+        description=named_range_tools.read_named_range.__doc__,
+    )
+    def read_named_range(workbook: str = None, name: str = None):
+        return named_range_tools.read_named_range(workbook, name)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Write Named Range"),
+        description=named_range_tools.write_named_range.__doc__,
+    )
+    def write_named_range(workbook: str = None, name: str = None, value: str | float | int | bool | None = None):
+        return named_range_tools.write_named_range(workbook, name, value)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Create Named Range"),
+        description=named_range_tools.create_named_range.__doc__,
+    )
+    def create_named_range(workbook: str = None, name: str = None, range_address: str = "A1", sheet: str = None):
+        return named_range_tools.create_named_range(workbook, name, range_address, sheet)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Update Named Range"),
+        description=named_range_tools.update_named_range.__doc__,
+    )
+    def update_named_range(workbook: str = None, name: str = None, range_address: str = "A1", sheet: str = None):
+        return named_range_tools.update_named_range(workbook, name, range_address, sheet)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Delete Named Range", destructiveHint=True),
+        description=named_range_tools.delete_named_range.__doc__,
+    )
+    def delete_named_range(workbook: str = None, name: str = None):
+        return named_range_tools.delete_named_range(workbook, name)
 
 
 def run_server():
