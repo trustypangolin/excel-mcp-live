@@ -120,6 +120,18 @@ are optional almost everywhere — omit them to target the active workbook / act
 | `create_named_range` | Create a new named range |
 | `update_named_range` | Repoint an existing named range to a new address |
 | `delete_named_range` | Delete a named range |
+| **Data validation** | |
+| `add_dropdown_validation` | Restrict a range to a dropdown list of values |
+| `add_number_validation` | Restrict a range to numbers matching a comparison |
+| `get_validation` | Read a cell's validation rule |
+| `remove_validation` | Remove validation from a range |
+| **Merging** | |
+| `merge_cells` / `unmerge_cells` | Merge a range into one cell, or undo it |
+| `get_merge_info` | Check whether a cell is part of a merged range |
+| **Hyperlinks** | |
+| `add_hyperlink` | Add a hyperlink (external URL or internal cell reference) |
+| `remove_hyperlink` | Remove a cell's hyperlink |
+| `list_hyperlinks` | List all hyperlinks on a sheet |
 | **Comments** | |
 | `add_comment` | Add a cell comment (note) |
 | `get_comments` | List comments on a sheet |

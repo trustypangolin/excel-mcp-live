@@ -69,6 +69,13 @@ Discovered three times so far while adding tools — expect to hit it again on a
   middle parameters (`Key2`, `Type`, `Order2`, `Key3`, `Order3`) raised `int() argument must be...
   not 'NoneType'` — pywin32's early-bound stub applies `int()` to each positional slot. Only pass
   the keyword arguments actually needed; never pad with positional `None`.
+- **`Hyperlinks.Add(..., TextToDisplay=...)`** as a creation-time keyword argument was also
+  silently ignored — the cell showed the raw URL instead of the requested display text. Fixed in
+  `range_extras_tools.add_hyperlink()` by setting the anchor cell's `.Value` directly *after*
+  calling `Add()`, rather than trusting the constructor's keyword argument. General rule this
+  keeps confirming: after creating something via a COM method call with several keyword arguments,
+  verify the result actually reflects what you passed — don't assume a keyword argument took
+  effect just because the call didn't raise.
 
 **The pattern to follow for any new COM call added here:** don't trust a parameterized
 property/method's default or keyword-argument behavior without testing it live against a real,
@@ -118,6 +125,7 @@ excel_document_server/
     format_tools.py       font/fill/number-format/alignment, autofit
     conditional_format_tools.py  cell-value rules, color scales
     named_range_tools.py  list/read/write/create/update/delete named ranges
+    range_extras_tools.py  data validation, merge/unmerge, hyperlinks
     comment_tools.py      cell comments (notes)
 ```
 
