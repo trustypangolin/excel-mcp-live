@@ -174,15 +174,33 @@ def sort_range(
         if key_column < 1 or key_column > rng.Columns.Count:
             return json.dumps({"error": f"key_column {key_column} is outside the range's {rng.Columns.Count} column(s)"})
 
+        # Exclude the header row ourselves rather than trusting Sort's own
+        # Header parameter — passing it as a keyword argument (Header=...)
+        # was silently ignored in live testing (the header row got sorted
+        # into the data instead of staying put), a COM keyword-argument
+        # binding issue in the same family as the Address/Resize quirks
+        # documented in excel_com.py. Excluding the row ourselves and never
+        # relying on Header sidesteps that ambiguity entirely.
+        start_col_letter = column_letter(rng.Column)
+        end_col_letter = column_letter(rng.Column + rng.Columns.Count - 1)
+        if has_header:
+            if rng.Rows.Count < 2:
+                return json.dumps({"error": "Range has no data rows below the header"})
+            data_start_row = rng.Row + 1
+        else:
+            data_start_row = rng.Row
+        data_end_row = rng.Row + rng.Rows.Count - 1
+        data_rng = ws.Range(f"{start_col_letter}{data_start_row}:{end_col_letter}{data_end_row}")
+
         key_col_letter = column_letter(rng.Column + key_column - 1)
-        key_range = ws.Range(f"{key_col_letter}{rng.Row}")
+        key_range = ws.Range(f"{key_col_letter}{data_start_row}")
 
-        rng.Sort(
-            Key1=key_range,
-            Order1=_XL_ASCENDING if ascending else _XL_DESCENDING,
-            Header=_XL_YES if has_header else _XL_NO,
-        )
+        # All positional — Sort's own keyword arguments proved unreliable
+        # via COM automation (see note above). Signature order per the VBA
+        # object model: Key1, Order1, Key2, Type, Order2, Key3, Order3, Header.
+        order_value = _XL_ASCENDING if ascending else _XL_DESCENDING
+        data_rng.Sort(key_range, order_value, None, None, None, None, None, _XL_NO)
 
-        return json.dumps({"success": True, "workbook": wb.Name, "sheet": ws.Name, "range": com_range_address(rng)})
+        return json.dumps({"success": True, "workbook": wb.Name, "sheet": ws.Name, "range": com_range_address(data_rng)})
     except Exception as e:
         return json.dumps({"error": str(e)})
