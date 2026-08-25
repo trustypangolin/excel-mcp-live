@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "excel-mcp-live"
-version = "0.3.0"
+version = "0.4.0"
 description = "MCP server for Microsoft Excel — live editing of workbooks already open in Excel via COM automation"
 readme = "README.md"
 keywords = ["mcp", "excel", "xlsx", "microsoft-excel", "com-automation", "ai", "llm", "claude"]

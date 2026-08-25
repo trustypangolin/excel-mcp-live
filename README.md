@@ -113,6 +113,13 @@ are optional almost everywhere — omit them to target the active workbook / act
 | `add_color_scale` | Apply a 2- or 3-color scale across a range |
 | `list_conditional_format_rules` | List the rules applied to a range |
 | `clear_conditional_format_rules` | Remove all rules from a range |
+| **Named ranges** | |
+| `list_named_ranges` | List user-defined named ranges |
+| `read_named_range` | Read a named range's current value(s) |
+| `write_named_range` | Write a value into a named range's top-left cell |
+| `create_named_range` | Create a new named range |
+| `update_named_range` | Repoint an existing named range to a new address |
+| `delete_named_range` | Delete a named range |
 | **Comments** | |
 | `add_comment` | Add a cell comment (note) |
 | `get_comments` | List comments on a sheet |
