@@ -21,6 +21,7 @@ from excel_document_server.tools import (
     conditional_format_tools,
     named_range_tools,
     range_extras_tools,
+    table_tools,
 )
 
 mcp = FastMCP("Excel Live MCP Server")
@@ -425,6 +426,57 @@ def register_tools():
     )
     def list_hyperlinks(workbook: str = None, sheet: str = None):
         return range_extras_tools.list_hyperlinks(workbook, sheet)
+
+    # --- Excel Table tools ---
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Create Table"),
+        description=table_tools.create_table.__doc__,
+    )
+    def create_table(workbook: str = None, sheet: str = None, range_address: str = "A1", table_name: str = None, has_headers: bool = True):
+        return table_tools.create_table(workbook, sheet, range_address, table_name, has_headers)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="List Tables", readOnlyHint=True),
+        description=table_tools.list_tables.__doc__,
+    )
+    def list_tables(workbook: str = None, sheet: str = None):
+        return table_tools.list_tables(workbook, sheet)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Get Table Info", readOnlyHint=True),
+        description=table_tools.get_table_info.__doc__,
+    )
+    def get_table_info(workbook: str = None, sheet: str = None, table_name: str = None):
+        return table_tools.get_table_info(workbook, sheet, table_name)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Append Table Rows"),
+        description=table_tools.append_table_rows.__doc__,
+    )
+    def append_table_rows(workbook: str = None, sheet: str = None, table_name: str = None, rows: list | None = None):
+        return table_tools.append_table_rows(workbook, sheet, table_name, rows)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Get Table Data", readOnlyHint=True),
+        description=table_tools.get_table_data.__doc__,
+    )
+    def get_table_data(workbook: str = None, sheet: str = None, table_name: str = None):
+        return table_tools.get_table_data(workbook, sheet, table_name)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Apply Table Style"),
+        description=table_tools.apply_table_style.__doc__,
+    )
+    def apply_table_style(workbook: str = None, sheet: str = None, table_name: str = None, style_name: str = "TableStyleMedium2"):
+        return table_tools.apply_table_style(workbook, sheet, table_name, style_name)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Delete Table", destructiveHint=True),
+        description=table_tools.delete_table.__doc__,
+    )
+    def delete_table(workbook: str = None, sheet: str = None, table_name: str = None):
+        return table_tools.delete_table(workbook, sheet, table_name)
 
 
 def run_server():
