@@ -21,6 +21,7 @@ from excel_document_server.tools import (
     conditional_format_tools,
     named_range_tools,
     range_extras_tools,
+    capture_tools,
 )
 
 mcp = FastMCP("Excel Live MCP Server")
@@ -425,6 +426,22 @@ def register_tools():
     )
     def list_hyperlinks(workbook: str = None, sheet: str = None):
         return range_extras_tools.list_hyperlinks(workbook, sheet)
+
+    # --- Screenshot tools ---
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Capture Range", readOnlyHint=True),
+        description=capture_tools.capture_range.__doc__,
+    )
+    def capture_range(workbook: str = None, sheet: str = None, range_address: str = "A1", output_path: str = None):
+        return capture_tools.capture_range(workbook, sheet, range_address, output_path)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Capture Sheet", readOnlyHint=True),
+        description=capture_tools.capture_sheet.__doc__,
+    )
+    def capture_sheet(workbook: str = None, sheet: str = None, output_path: str = None):
+        return capture_tools.capture_sheet(workbook, sheet, output_path)
 
 
 def run_server():
