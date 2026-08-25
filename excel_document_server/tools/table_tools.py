@@ -124,6 +124,13 @@ def get_table_info(workbook: str = None, sheet: str = None, table_name: str = No
         except Exception:
             row_count = 0
 
+        # TableStyle reads back as a TableStyle COM object, not a plain
+        # string, even though it's settable with a plain style-name string
+        # (confirmed in live testing — json.dumps() raised "Object of type
+        # CDispatch is not JSON serializable" when this wasn't unwrapped).
+        style = tbl.TableStyle
+        style_name = style.Name if hasattr(style, "Name") else str(style)
+
         return json.dumps({
             "success": True,
             "workbook": wb.Name,
@@ -132,7 +139,7 @@ def get_table_info(workbook: str = None, sheet: str = None, table_name: str = No
             "range": com_range_address(tbl.Range),
             "columns": columns,
             "row_count": row_count,
-            "style": tbl.TableStyle,
+            "style": style_name,
         }, ensure_ascii=False)
     except ValueError as e:
         return json.dumps({"error": str(e)})
