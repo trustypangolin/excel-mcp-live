@@ -308,11 +308,18 @@ def add_hyperlink(
 
         if address.startswith("#"):
             sub_address = address[1:]
-            display = text_to_display or sub_address
-            hl = ws.Hyperlinks.Add(Anchor=rng, Address="", SubAddress=sub_address, TextToDisplay=display)
+            hl = ws.Hyperlinks.Add(Anchor=rng, Address="", SubAddress=sub_address)
         else:
-            display = text_to_display or address
-            hl = ws.Hyperlinks.Add(Anchor=rng, Address=address, TextToDisplay=display)
+            hl = ws.Hyperlinks.Add(Anchor=rng, Address=address)
+
+        if text_to_display:
+            # Hyperlinks.Add's own TextToDisplay keyword argument is
+            # unreliable via COM automation — silently ignored in live
+            # testing (the cell showed the raw address instead). Setting
+            # the anchor cell's Value directly after creation works
+            # reliably instead, since the hyperlink's displayed text is
+            # just that cell's text.
+            rng.Value = text_to_display
 
         if screen_tip:
             hl.ScreenTip = screen_tip
