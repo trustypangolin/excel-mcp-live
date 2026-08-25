@@ -116,6 +116,7 @@ excel_document_server/
     range_tools.py        read/write cell values & formulas, find/replace, clear
     structure_tools.py    insert/delete rows & columns, sort a range
     format_tools.py       font/fill/number-format/alignment, autofit
+    conditional_format_tools.py  cell-value rules, color scales
     comment_tools.py      cell comments (notes)
 ```
 

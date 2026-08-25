@@ -108,6 +108,11 @@ are optional almost everywhere — omit them to target the active workbook / act
 | **Formatting** | |
 | `format_range` | Bold/italic/underline, font, fill color, number format, alignment, wrap |
 | `autofit_columns` | Autofit column widths |
+| **Conditional formatting** | |
+| `add_conditional_format_rule` | Highlight cells matching a comparison (greater than, between, etc.) |
+| `add_color_scale` | Apply a 2- or 3-color scale across a range |
+| `list_conditional_format_rules` | List the rules applied to a range |
+| `clear_conditional_format_rules` | Remove all rules from a range |
 | **Comments** | |
 | `add_comment` | Add a cell comment (note) |
 | `get_comments` | List comments on a sheet |
