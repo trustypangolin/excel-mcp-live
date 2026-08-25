@@ -20,6 +20,7 @@ from excel_document_server.tools import (
     structure_tools,
     conditional_format_tools,
     named_range_tools,
+    range_extras_tools,
 )
 
 mcp = FastMCP("Excel Live MCP Server")
@@ -337,6 +338,93 @@ def register_tools():
     )
     def delete_named_range(workbook: str = None, name: str = None):
         return named_range_tools.delete_named_range(workbook, name)
+
+    # --- Data validation, merge, and hyperlink tools ---
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Add Dropdown Validation"),
+        description=range_extras_tools.add_dropdown_validation.__doc__,
+    )
+    def add_dropdown_validation(workbook: str = None, sheet: str = None, range_address: str = "A1", values: list | None = None):
+        return range_extras_tools.add_dropdown_validation(workbook, sheet, range_address, values)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Add Number Validation"),
+        description=range_extras_tools.add_number_validation.__doc__,
+    )
+    def add_number_validation(
+        workbook: str = None,
+        sheet: str = None,
+        range_address: str = "A1",
+        condition: str = "greater_than",
+        value1: float = None,
+        value2: float = None,
+        decimal: bool = False,
+    ):
+        return range_extras_tools.add_number_validation(workbook, sheet, range_address, condition, value1, value2, decimal)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Get Validation", readOnlyHint=True),
+        description=range_extras_tools.get_validation.__doc__,
+    )
+    def get_validation(workbook: str = None, sheet: str = None, cell: str = "A1"):
+        return range_extras_tools.get_validation(workbook, sheet, cell)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Remove Validation", destructiveHint=True),
+        description=range_extras_tools.remove_validation.__doc__,
+    )
+    def remove_validation(workbook: str = None, sheet: str = None, range_address: str = "A1"):
+        return range_extras_tools.remove_validation(workbook, sheet, range_address)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Merge Cells"),
+        description=range_extras_tools.merge_cells.__doc__,
+    )
+    def merge_cells(workbook: str = None, sheet: str = None, range_address: str = "A1"):
+        return range_extras_tools.merge_cells(workbook, sheet, range_address)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Unmerge Cells"),
+        description=range_extras_tools.unmerge_cells.__doc__,
+    )
+    def unmerge_cells(workbook: str = None, sheet: str = None, range_address: str = "A1"):
+        return range_extras_tools.unmerge_cells(workbook, sheet, range_address)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Get Merge Info", readOnlyHint=True),
+        description=range_extras_tools.get_merge_info.__doc__,
+    )
+    def get_merge_info(workbook: str = None, sheet: str = None, cell: str = "A1"):
+        return range_extras_tools.get_merge_info(workbook, sheet, cell)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Add Hyperlink"),
+        description=range_extras_tools.add_hyperlink.__doc__,
+    )
+    def add_hyperlink(
+        workbook: str = None,
+        sheet: str = None,
+        cell: str = "A1",
+        address: str = "",
+        text_to_display: str = None,
+        screen_tip: str = None,
+    ):
+        return range_extras_tools.add_hyperlink(workbook, sheet, cell, address, text_to_display, screen_tip)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Remove Hyperlink", destructiveHint=True),
+        description=range_extras_tools.remove_hyperlink.__doc__,
+    )
+    def remove_hyperlink(workbook: str = None, sheet: str = None, cell: str = "A1"):
+        return range_extras_tools.remove_hyperlink(workbook, sheet, cell)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="List Hyperlinks", readOnlyHint=True),
+        description=range_extras_tools.list_hyperlinks.__doc__,
+    )
+    def list_hyperlinks(workbook: str = None, sheet: str = None):
+        return range_extras_tools.list_hyperlinks(workbook, sheet)
 
 
 def run_server():
