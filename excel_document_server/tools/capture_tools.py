@@ -10,20 +10,18 @@ import json
 import os
 import sys
 
-_XL_PRINTER = 2
+_XL_SCREEN = 1
 _XL_BITMAP = 2
 
 
 def _export_range_as_image(ws, rng, output_path: str, image_format: str):
     """Shared implementation for capturing a Range to an image file."""
-    # Appearance=xlScreen (1) requires the range to actually be visibly
-    # rendered on screen at the moment of the call — it silently returns a
-    # blank capture if Excel's window isn't in the foreground/unobscured
-    # (confirmed in live testing). xlPrinter renders independent of the
-    # window's visible/focus state, so it works regardless of what's on
-    # screen. Activating the sheet first is cheap extra insurance.
+    # Appearance=xlPrinter raises "CopyPicture method of Range class failed"
+    # outright (confirmed in live testing) — not usable here. Back to
+    # xlScreen, but now with the sheet explicitly activated first, which
+    # the first (blank-output) attempt did not do.
     ws.Activate()
-    rng.CopyPicture(Appearance=_XL_PRINTER, Format=_XL_BITMAP)
+    rng.CopyPicture(Appearance=_XL_SCREEN, Format=_XL_BITMAP)
 
     chart_obj = ws.ChartObjects().Add(rng.Left, rng.Top + rng.Height + 40, rng.Width, rng.Height)
     try:
