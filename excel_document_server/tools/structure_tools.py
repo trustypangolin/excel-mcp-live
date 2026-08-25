@@ -195,11 +195,14 @@ def sort_range(
         key_col_letter = column_letter(rng.Column + key_column - 1)
         key_range = ws.Range(f"{key_col_letter}{data_start_row}")
 
-        # All positional — Sort's own keyword arguments proved unreliable
-        # via COM automation (see note above). Signature order per the VBA
-        # object model: Key1, Order1, Key2, Type, Order2, Key3, Order3, Header.
+        # Only pass the keyword arguments we actually need. Positional
+        # placeholders for the unused middle parameters (Key2, Type, Order2,
+        # Key3, Order3) don't work either — pywin32's early-bound stub
+        # coerces each with int(), and int(None) raises. Since the header
+        # row is already excluded from data_rng above, Header=xlNo here is
+        # simply correct for this already-sliced range, not a re-guess.
         order_value = _XL_ASCENDING if ascending else _XL_DESCENDING
-        data_rng.Sort(key_range, order_value, None, None, None, None, None, _XL_NO)
+        data_rng.Sort(Key1=key_range, Order1=order_value, Header=_XL_NO)
 
         return json.dumps({"success": True, "workbook": wb.Name, "sheet": ws.Name, "range": com_range_address(data_rng)})
     except Exception as e:
