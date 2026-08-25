@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "excel-mcp-live"
+version = "0.1.0"
+description = "MCP server for Microsoft Excel — live editing of workbooks already open in Excel via COM automation"
+readme = "README.md"
+keywords = ["mcp", "excel", "xlsx", "microsoft-excel", "com-automation", "ai", "llm", "claude"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: Microsoft :: Windows",
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp>=2.8.1",
+    "pywin32>=306; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.2",
+]
+
+[project.scripts]
+excel-mcp-live = "excel_document_server.main:run_server"
+
+[tool.hatch.build.targets.wheel]
+only-include = [
+    "excel_document_server",
+]
+sources = ["."]

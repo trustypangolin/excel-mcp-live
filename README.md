@@ -1,0 +1,143 @@
+# excel-mcp-live
+
+**Edit a Microsoft Excel workbook while it's open — the AI attaches to the window you already
+have, it doesn't start its own.**
+
+`Live editing` &middot; `Windows (COM)` &middot; `19 tools`
+
+---
+
+Most Excel MCP servers (including this workspace's own
+[mcp-server-excel](../mcp-server-excel)) work by starting a fresh, invisible Excel process, opening
+your file in it, and closing it again when done. That's great for scripted automation, but it
+means the AI is never looking at the same window you are.
+
+`excel-mcp-live` does the opposite: it attaches to whatever Excel window(s) you already have open
+via COM, using the same "find the running application" approach as
+[word-mcp-live](../word-mcp-live)'s live editing tools. It never launches Excel and never closes
+it — it only touches workbooks you opened yourself.
+
+## Requirements
+
+- **Windows** (COM automation is Windows-only — there is no macOS/Linux mode for this project)
+- **Microsoft Excel** installed and **already running with a workbook open**
+- **Python 3.11+**
+
+## Installation
+
+```bash
+git clone <this-repo-url>
+cd excel-mcp-live
+pip install -e .
+```
+
+Or run straight from source with [uv](https://docs.astral.sh/uv/) — no install step needed:
+
+```bash
+uv run excel_mcp_server.py
+```
+
+## Client setup (`.mcp.json`)
+
+Point your MCP client at the project directory. For Claude Code, add this to `.mcp.json` in your
+project (or `~/.claude.json` for a user-wide config):
+
+```json
+{
+  "mcpServers": {
+    "excel-live": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "G:/Ai/MCP/excel-mcp-live",
+        "run",
+        "excel_mcp_server.py"
+      ],
+      "env": {
+        "MCP_AUTHOR": "Your Name"
+      }
+    }
+  }
+}
+```
+
+If you installed it with `pip install -e .` instead, you can use the console script directly:
+
+```json
+{
+  "mcpServers": {
+    "excel-live": {
+      "command": "excel-mcp-live",
+      "env": {
+        "MCP_AUTHOR": "Your Name"
+      }
+    }
+  }
+}
+```
+
+`MCP_AUTHOR` sets the author name attached to new cell comments (default: `"Author"`).
+
+## Supported functions
+
+Every tool operates on a workbook that's already open in Excel. `workbook` and `sheet` arguments
+are optional almost everywhere — omit them to target the active workbook / active sheet.
+
+| Tool | Description |
+|---|---|
+| **Workbook** | |
+| `list_open_workbooks` | List every workbook open across all running Excel windows |
+| `get_workbook_info` | Sheet names, active sheet, and used range per sheet |
+| `save_workbook` | Save in place (Ctrl+S) |
+| **Worksheets** | |
+| `list_worksheets` | List sheet names in tab order |
+| `add_worksheet` | Add a new sheet, optionally named and positioned |
+| `delete_worksheet` | Delete a sheet |
+| `rename_worksheet` | Rename a sheet |
+| `activate_worksheet` | Switch the active tab |
+| **Cells & ranges** | |
+| `get_range_values` | Read cell/range values |
+| `set_range_values` | Write a value, a row, or a 2D block of values |
+| `get_range_formulas` | Read formulas (A1-style) |
+| `set_cell_formula` | Set a formula or literal on one cell |
+| `find_replace` | Find and replace text across a sheet or the whole workbook |
+| `clear_range` | Clear contents, optionally including formatting |
+| **Formatting** | |
+| `format_range` | Bold/italic/underline, font, fill color, number format, alignment, wrap |
+| `autofit_columns` | Autofit column widths |
+| **Comments** | |
+| `add_comment` | Add a cell comment (note) |
+| `get_comments` | List comments on a sheet |
+| `delete_comment` | Remove a cell's comment |
+
+Not yet covered: charts, PivotTables, Power Query, DAX, VBA — for those, use
+[mcp-server-excel](../mcp-server-excel), which starts its own Excel instance and has much broader
+operation coverage.
+
+## Example prompts
+
+```
+"I have this budget open in Excel — read A1:F20 and tell me if any totals look wrong."
+"Add a new sheet called 'Summary' before the current one."
+"Bold row 1 in the sheet I have open and give it a light gray fill."
+"Find every 'Q3' in this workbook and replace it with 'Q4'."
+"Set B2 to =SUM(B3:B20) and tell me what it calculates to."
+"Add a comment on cell D5 asking whether this figure includes tax."
+```
+
+## Known limitations
+
+- **Windows only.** Excel COM automation doesn't exist on macOS/Linux.
+- **The workbook must already be open in Excel.** This server doesn't create or open files — see
+  mcp-server-excel for that.
+- **No single-undo grouping.** Word's COM API can wrap several edits into one Ctrl+Z; Excel's
+  cannot. A tool call that performs multiple writes (e.g. writing several cells) may need several
+  Ctrl+Z's to fully undo.
+- **Multiple Excel windows:** if you have more than one workbook open (possibly across separate
+  Excel processes), pass `workbook` explicitly to target the right one — otherwise tools default to
+  the active workbook of whichever Excel instance is found first.
+
+## Development
+
+See [CLAUDE.md](CLAUDE.md) for architecture notes and design constraints — in particular, why this
+server must never launch or quit Excel itself.
