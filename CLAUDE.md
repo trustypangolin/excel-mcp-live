@@ -132,6 +132,7 @@ excel_document_server/
     named_range_tools.py  list/read/write/create/update/delete named ranges
     range_extras_tools.py  data validation, merge/unmerge, hyperlinks
     table_tools.py         Excel Tables (ListObjects): create/list/inspect/append/read/style/delete
+    chart_tools.py         charts: create/list/retype/retitle/add series/delete
     comment_tools.py      cell comments (notes)
 ```
 
@@ -142,8 +143,7 @@ Every tool function follows the same shape: guard on `sys.platform == "win32"`, 
 
 ## Roadmap / not yet implemented
 
-- Charts are planned next. PivotTables, Power Query, DAX, VBA are intentionally out of scope;
-  that's `mcp-server-excel`.
+- PivotTables, Power Query, DAX, VBA are intentionally out of scope; that's `mcp-server-excel`.
 - No explicit "close workbook" or "detach" tool.
 - No macOS support (Word's live tools have a JXA backend for macOS; Excel does not here yet).
 - **Range/sheet screenshot was attempted and shelved** — see the unmerged `feature/screenshot`

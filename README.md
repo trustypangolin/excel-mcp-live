@@ -140,12 +140,19 @@ are optional almost everywhere — omit them to target the active workbook / act
 | `get_table_data` | Read a table's data rows as a 2D array |
 | `apply_table_style` | Apply a built-in table style |
 | `delete_table` | Remove a table's definition, keeping the underlying data |
+| **Charts** | |
+| `create_chart` | Create a chart from a range |
+| `list_charts` | List charts on a sheet |
+| `set_chart_type` | Change a chart's type (column, bar, line, pie, area, scatter, doughnut) |
+| `set_chart_title` | Set or clear a chart's title |
+| `add_series` | Add a data series to a chart |
+| `delete_chart` | Delete a chart |
 | **Comments** | |
 | `add_comment` | Add a cell comment (note) |
 | `get_comments` | List comments on a sheet |
 | `delete_comment` | Remove a cell's comment |
 
-Not yet covered: charts, PivotTables, Power Query, DAX, VBA — for those, use
+Not yet covered: PivotTables, Power Query, DAX, VBA — for those, use
 [mcp-server-excel](../mcp-server-excel), which starts its own Excel instance and has much broader
 operation coverage.
 
