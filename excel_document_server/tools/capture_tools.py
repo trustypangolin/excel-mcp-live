@@ -17,19 +17,18 @@ _XL_BITMAP = 2
 def _export_range_as_image(ws, rng, output_path: str, image_format: str):
     """Shared implementation for capturing a Range to an image file."""
     # Appearance=xlPrinter raises "CopyPicture method of Range class failed"
-    # outright — not usable. xlScreen without Activate() first "succeeds"
-    # but exports a blank image (nothing actually rendered yet). xlScreen
-    # with Activate() immediately before it also raised the same
-    # "CopyPicture method... failed" error — Activate() appears to leave
-    # Excel mid-redraw, and CopyPicture(xlScreen) needs the screen to have
-    # actually finished rendering. Pumping the Windows message queue after
-    # Activate() lets that pending redraw complete before the screen-based
-    # copy runs.
+    # outright. Calling ws.Activate() immediately before CopyPicture(xlScreen)
+    # also raises that same error, even with the message queue pumped
+    # afterward — Activate() itself puts something into a bad state for the
+    # following CopyPicture call, not just a pending-redraw timing issue.
+    # So: no Activate(), plain xlScreen (this combination is the only one
+    # that doesn't raise) — but pump the message queue between CopyPicture
+    # and Paste, in case the blank-output problem is the clipboard hand-off
+    # not having completed yet when Paste runs.
     import pythoncom
 
-    ws.Activate()
-    pythoncom.PumpWaitingMessages()
     rng.CopyPicture(Appearance=_XL_SCREEN, Format=_XL_BITMAP)
+    pythoncom.PumpWaitingMessages()
 
     chart_obj = ws.ChartObjects().Add(rng.Left, rng.Top + rng.Height + 40, rng.Width, rng.Height)
     try:
