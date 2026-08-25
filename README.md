@@ -102,6 +102,9 @@ are optional almost everywhere — omit them to target the active workbook / act
 | `set_cell_formula` | Set a formula or literal on one cell |
 | `find_replace` | Find and replace text across a sheet or the whole workbook |
 | `clear_range` | Clear contents, optionally including formatting |
+| `insert_rows` / `delete_rows` | Insert or delete rows, shifting others up/down |
+| `insert_columns` / `delete_columns` | Insert or delete columns, shifting others left/right |
+| `sort_range` | Sort a range by one column, optionally keeping a header row in place |
 | **Formatting** | |
 | `format_range` | Bold/italic/underline, font, fill color, number format, alignment, wrap |
 | `autofit_columns` | Autofit column widths |

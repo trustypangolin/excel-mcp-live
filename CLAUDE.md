@@ -47,6 +47,36 @@ will require multiple Ctrl+Z's to fully undo, not one. Don't claim single-undo b
 descriptions or the README. If this needs solving later, the likely approach is a
 snapshot-before/restore-on-demand helper rather than a true undo hook.
 
+## Known COM gotcha: parameterized properties/methods lie about their calling convention
+
+Discovered three times so far while adding tools — expect to hit it again on any new COM surface:
+
+- **`Range.Address(False, False)`** raised `'str' object is not callable`. `Address` is a COM
+  property with all-optional parameters; early-bound (gencache) pywin32 dispatch resolves it
+  *eagerly* to a plain string using the default arguments, rather than returning something
+  callable. Fixed with `com_range_address()` in `excel_com.py`, which checks `callable()` first.
+  Same issue hit `Comment.Text()`.
+- **`Range.Resize(rows, cols)`** was worse — it didn't raise, it silently wrote data to the *wrong
+  cell*. Same eager-property resolution meant `.Resize` was already the unresized range, and
+  `(rows, cols)` got reinterpreted by win32com as `Range.Item(row, col)` — an unrelated default
+  indexer call. Fixed by building the target address as a plain A1 string (`column_letter()` in
+  `conversions.py`) and calling `ws.Range(that_string)` instead of `.Resize(...)`. Never call
+  `.Resize(...)` in this codebase — build an address string instead.
+- **`Range.Sort(..., Header=xlYes)`** as a keyword argument was silently ignored — the header row
+  got sorted into the data instead of staying in place. Fixed in `structure_tools.sort_range()` by
+  excluding the header row from the range ourselves before calling `Sort`, rather than trusting its
+  own header-detection. Separately, passing positional `None` placeholders for `Sort`'s unused
+  middle parameters (`Key2`, `Type`, `Order2`, `Key3`, `Order3`) raised `int() argument must be...
+  not 'NoneType'` — pywin32's early-bound stub applies `int()` to each positional slot. Only pass
+  the keyword arguments actually needed; never pad with positional `None`.
+
+**The pattern to follow for any new COM call added here:** don't trust a parameterized
+property/method's default or keyword-argument behavior without testing it live against a real,
+open Excel instance first (`git status`-clean throwaway edits work fine for this). If it's a
+property, check `callable()` before invoking. If it's a method with several optional parameters,
+pass only the keyword arguments you actually need — never positional placeholders, never
+assume an optional flag like `Header` is actually being honored without verifying the result.
+
 ## Commands
 
 ```powershell
@@ -78,11 +108,13 @@ excel_document_server/
                           find_worksheet() — the only place GetActiveObject/ROT-scanning happens
   utils/
     conversions.py       to_jsonable() (COM tuples/dates → JSON), hex_to_bgr() (Excel's
-                          Font.Color/Interior.Color use BGR int, not RGB hex)
+                          Font.Color/Interior.Color use BGR int, not RGB hex), column_letter()/
+                          column_number() (A1-string column math, e.g. building "B2:D5" by hand)
   tools/
     workbook_tools.py    list/inspect/save open workbooks
     sheet_tools.py        add/delete/rename/activate worksheets
     range_tools.py        read/write cell values & formulas, find/replace, clear
+    structure_tools.py    insert/delete rows & columns, sort a range
     format_tools.py       font/fill/number-format/alignment, autofit
     comment_tools.py      cell comments (notes)
 ```
