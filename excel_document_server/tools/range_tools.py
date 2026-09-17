@@ -162,7 +162,7 @@ def set_cell_formula(workbook: str = None, sheet: str = None, cell: str = "A1", 
         _app, wb = find_workbook(workbook)
         ws = find_worksheet(wb, sheet)
         rng = ws.Range(cell)
-        rng.Formula = formula
+        rng.Formula2 = formula
 
         return json.dumps({
             "success": True,
