@@ -534,6 +534,32 @@ def register_tools():
     def delete_chart(workbook: str = None, sheet: str = None, chart_name: str = None):
         return chart_tools.delete_chart(workbook, sheet, chart_name)
 
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Format Chart Series"),
+        description=chart_tools.format_chart_series.__doc__,
+    )
+    def format_chart_series(
+        workbook: str = None,
+        sheet: str = None,
+        chart_name: str = None,
+        series_index: int = 1,
+        fill_color: str = None,
+    ):
+        return chart_tools.format_chart_series(workbook, sheet, chart_name, series_index, fill_color)
+
+    @mcp.tool(
+        annotations=ToolAnnotations(title="Set Chart Legend"),
+        description=chart_tools.set_chart_legend.__doc__,
+    )
+    def set_chart_legend(
+        workbook: str = None,
+        sheet: str = None,
+        chart_name: str = None,
+        position: str = "right",
+        visible: bool = True,
+    ):
+        return chart_tools.set_chart_legend(workbook, sheet, chart_name, position, visible)
+
 
 def run_server():
     """Run the Excel Live MCP Server over stdio."""
