@@ -157,7 +157,8 @@ def set_chart_title(workbook: str = None, sheet: str = None, chart_name: str = N
         workbook: Workbook name or path (None = active workbook).
         sheet: Worksheet name (None = active sheet).
         chart_name: Chart to update (required).
-        title: New title text. Empty string or None removes the title.
+        title: New title text or formula. If it starts with '=', links to a cell.
+               Empty string or None removes the title.
 
     Returns:
         JSON confirmation.
@@ -176,7 +177,11 @@ def set_chart_title(workbook: str = None, sheet: str = None, chart_name: str = N
 
         if title:
             chart_obj.Chart.HasTitle = True
-            chart_obj.Chart.ChartTitle.Text = title
+            # If title starts with '=', treat it as a formula to link to a cell
+            if title.startswith("="):
+                chart_obj.Chart.ChartTitle.Formula = title
+            else:
+                chart_obj.Chart.ChartTitle.Text = title
         else:
             chart_obj.Chart.HasTitle = False
 
@@ -252,6 +257,131 @@ def delete_chart(workbook: str = None, sheet: str = None, chart_name: str = None
         chart_obj.Delete()
 
         return json.dumps({"success": True, "workbook": wb.Name, "sheet": ws.Name, "deleted": chart_name})
+    except ValueError as e:
+        return json.dumps({"error": str(e)})
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+def _hex_to_rgb(hex_color: str) -> int:
+    """Convert hex color string to Windows RGB integer.
+    
+    Args:
+        hex_color: Hex color string like "4472C4" or "#4472C4"
+    
+    Returns:
+        Windows RGB integer (BGR order for win32com)
+    """
+    hex_color = hex_color.lstrip('#')
+    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+    return r + (g * 256) + (b * 65536)  # Windows BGR order
+
+
+_LEGEND_POSITIONS = {
+    "bottom": -4107,   # xlLegendPositionBottom
+    "top": -4160,      # xlLegendPositionTop
+    "right": -4152,    # xlLegendPositionRight
+    "left": -4131,     # xlLegendPositionLeft
+    "corner": 2,       # xlLegendPositionCorner
+}
+
+
+def format_chart_series(
+    workbook: str = None,
+    sheet: str = None,
+    chart_name: str = None,
+    series_index: int = 1,
+    fill_color: str = None,
+) -> str:
+    """Format a chart series (e.g., set fill color).
+
+    Args:
+        workbook: Workbook name or path (None = active workbook).
+        sheet: Worksheet name (None = active sheet).
+        chart_name: Chart to modify (required).
+        series_index: 1-based series index (default: 1).
+        fill_color: Hex RGB color, e.g. "4472C4" or "#4472C4" (optional).
+
+    Returns:
+        JSON confirmation.
+    """
+    if sys.platform != "win32":
+        return json.dumps({"error": "Live tools are only available on Windows"})
+    if not chart_name:
+        return json.dumps({"error": "chart_name is required"})
+
+    try:
+        from excel_document_server.core.excel_com import find_workbook, find_worksheet
+
+        _app, wb = find_workbook(workbook)
+        ws = find_worksheet(wb, sheet)
+        chart_obj = _find_chart(ws, chart_name)
+        
+        series = chart_obj.Chart.SeriesCollection(series_index)
+        
+        if fill_color:
+            series.Format.Fill.ForeColor.RGB = _hex_to_rgb(fill_color)
+
+        return json.dumps({
+            "success": True,
+            "workbook": wb.Name,
+            "sheet": ws.Name,
+            "chart_name": chart_obj.Name,
+            "series_index": series_index,
+        })
+    except ValueError as e:
+        return json.dumps({"error": str(e)})
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+
+def set_chart_legend(
+    workbook: str = None,
+    sheet: str = None,
+    chart_name: str = None,
+    position: str = "right",
+    visible: bool = True,
+) -> str:
+    """Set chart legend position and visibility.
+
+    Args:
+        workbook: Workbook name or path (None = active workbook).
+        sheet: Worksheet name (None = active sheet).
+        chart_name: Chart to modify (required).
+        position: One of "bottom", "top", "right", "left", "corner" (default: "right").
+        visible: Show or hide the legend (default: True).
+
+    Returns:
+        JSON confirmation.
+    """
+    if sys.platform != "win32":
+        return json.dumps({"error": "Live tools are only available on Windows"})
+    if not chart_name:
+        return json.dumps({"error": "chart_name is required"})
+
+    position_key = (position or "right").lower()
+    if position_key not in _LEGEND_POSITIONS:
+        return json.dumps({"error": f"Invalid position: {position}. Use one of {list(_LEGEND_POSITIONS.keys())}"})
+
+    try:
+        from excel_document_server.core.excel_com import find_workbook, find_worksheet
+
+        _app, wb = find_workbook(workbook)
+        ws = find_worksheet(wb, sheet)
+        chart_obj = _find_chart(ws, chart_name)
+        
+        chart_obj.Chart.HasLegend = visible
+        if visible:
+            chart_obj.Chart.Legend.Position = _LEGEND_POSITIONS[position_key]
+
+        return json.dumps({
+            "success": True,
+            "workbook": wb.Name,
+            "sheet": ws.Name,
+            "chart_name": chart_obj.Name,
+            "legend_visible": visible,
+            "legend_position": position_key if visible else None,
+        })
     except ValueError as e:
         return json.dumps({"error": str(e)})
     except Exception as e:
