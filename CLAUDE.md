@@ -98,22 +98,33 @@ pip install -e ".[dev]"
 # Run the server directly against source (no install needed)
 uv run excel_mcp_server.py
 
-# Syntax-check everything (no test suite yet — see Roadmap)
+# Syntax-check everything
 python -m py_compile excel_document_server/**/*.py
+
+# tools/list shape, payload budget and toolset tests (no Excel needed)
+uv run --extra dev pytest
 ```
 
-There is no automated test suite yet. Like `mcp-server-excel` (see its `docs/ADR-001-NO-UNIT-TESTS.md`),
-COM automation isn't meaningfully mockable — real verification means opening Excel with a workbook
-and exercising tools against it by hand, or wiring up integration tests that require a live Excel
-install (not yet done here).
+`tests/test_tools_list.py` covers registration only: descriptions, schemas, hints, payload size
+and `EXCEL_MCP_TOOLSETS` filtering. It never touches COM. The tools' behavior has no automated
+tests. Like `mcp-server-excel` (see its `docs/ADR-001-NO-UNIT-TESTS.md`), COM automation isn't
+meaningfully mockable. Real verification means opening Excel with a workbook and exercising tools
+against it by hand, or wiring up integration tests that need a live Excel install (not done yet).
 
 ## Architecture
 
 ```
 excel_document_server/
   main.py              FastMCP server — every tool registered here, description=impl.__doc__
-                        pulls each tool's docstring in as its MCP description (single source
-                        of truth — write real docstrings, don't duplicate them in main.py)
+                        pulls each tool's docstring in (single source of truth — write real
+                        docstrings, don't duplicate them in main.py)
+  tool_metadata.py      Turns those Google-style docstrings into compact metadata: the prose
+                        (plus any Returns: caveat) becomes the description, and each Args: entry
+                        becomes that parameter's schema description. Boilerplate workbook/sheet/
+                        A1-address docs are dropped; SERVER_INSTRUCTIONS states them once.
+                        A docstring Args: entry that names no real parameter fails at startup.
+  toolsets.py           EXCEL_MCP_TOOLSETS filtering. Every new tool must be added to exactly one
+                        group in TOOL_GROUPS, or registration raises KeyError.
   defaults.py           MCP_AUTHOR env var → comment author default
   core/
     excel_com.py         COM attach layer: list_all_open_workbooks(), find_workbook(),
@@ -156,4 +167,4 @@ Every tool function follows the same shape: guard on `sys.platform == "win32"`, 
   got further but still hasn't been confirmed producing real content). If picking this back up,
   start from that branch's history rather than from scratch — each dead end is documented in its
   commit messages.
-- No automated tests.
+- No automated tests of tool behavior (only of registration, see Commands).
