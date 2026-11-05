@@ -6,11 +6,14 @@ automation. Requires Windows with Excel installed and running — this server
 never launches or quits Excel itself.
 """
 
+import os
 import sys
 
 from fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
+from excel_document_server.tool_metadata import SERVER_INSTRUCTIONS
+from excel_document_server.toolsets import ENV_VAR, ToolRegistrar, parse_toolsets
 from excel_document_server.tools import (
     workbook_tools,
     sheet_tools,
@@ -25,11 +28,23 @@ from excel_document_server.tools import (
     chart_tools,
 )
 
-mcp = FastMCP("Excel Live MCP Server")
+mcp = FastMCP("Excel Live MCP Server", instructions=SERVER_INSTRUCTIONS)
 
 
-def register_tools():
-    """Register all tools with the MCP server using FastMCP decorators."""
+def register_tools(server=None, toolsets=None):
+    """Register tools with the MCP server.
+
+    ``description=impl.__doc__`` passes each tool module's docstring through
+    ``ToolRegistrar``, which turns its ``Args:`` section into per-parameter
+    schema descriptions and keeps only the summary as the tool description.
+    ``toolsets`` (default: the EXCEL_MCP_TOOLSETS env var) limits which groups
+    are registered.
+    """
+    if server is None:
+        server = globals()["mcp"]
+    if toolsets is None:
+        toolsets = parse_toolsets(os.getenv(ENV_VAR))
+    mcp = ToolRegistrar(server, toolsets)
 
     # --- Workbook tools ---
 

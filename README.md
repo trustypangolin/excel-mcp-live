@@ -3,7 +3,7 @@
 **Edit a Microsoft Excel workbook while it's open — the AI attaches to the window you already
 have, it doesn't start its own.**
 
-`Live editing` &middot; `Windows (COM)` &middot; `19 tools`
+`Live editing` &middot; `Windows (COM)` &middot; `59 tools`
 
 ---
 
@@ -77,6 +77,18 @@ If you installed it with `pip install -e .` instead, you can use the console scr
 ```
 
 `MCP_AUTHOR` sets the author name attached to new cell comments (default: `"Author"`).
+
+### Limit tool discovery
+
+Set `EXCEL_MCP_TOOLSETS` in the server's `env` to a comma-separated list of groups to register
+only those tools, e.g. `"EXCEL_MCP_TOOLSETS": "ranges,formatting"`. Groups are combined as a union.
+Available groups are `workbooks`, `sheets`, `ranges` (values, formulas, find/replace, clear,
+row/column insert/delete, sort, merge), `formatting` (including conditional formatting),
+`comments`, `named_ranges`, `validation`, `hyperlinks`, `tables` and `charts`. Each tool is in
+exactly one group. `list_open_workbooks` is always registered. Unset, empty or `all` registers
+every tool. An unknown group name stops the server at startup. Restart the server after
+changing this setting. Filtering only controls which tools are listed and callable. It is not a
+security boundary.
 
 ## Supported functions
 
